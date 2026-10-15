@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Calculadora de dimensionamiento de albercas</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#f1f6f9;--card:#fff;--ink:#0d2a3a;--mut:#5b7282;--line:#d5e2ea;--pri:#0a7ea4;--soft:#e4f2f8;--ok:#12805c;--bad:#c0392b;--warn:#a96a00}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0b1a24;--card:#12283a;--ink:#e8f2f7;--mut:#93aab8;--line:#244257;--pri:#3cb8e0;--soft:#173a50;--ok:#41c796;--bad:#ff7b6b;--warn:#f0b955}}
+:root[data-theme="dark"]{--bg:#0b1a24;--card:#12283a;--ink:#e8f2f7;--mut:#93aab8;--line:#244257;--pri:#3cb8e0;--soft:#173a50;--ok:#41c796;--bad:#ff7b6b;--warn:#f0b955}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{background:linear-gradient(135deg,#065a78,#0a9bc4);color:#fff;padding:28px 16px}
+header div,main{max-width:1100px;margin:0 auto}header h1{margin:0 0 4px;font-size:clamp(22px,4vw,32px)}header p{margin:0;opacity:.9}
+main{padding:16px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:16px;align-items:start}
+@media(max-width:900px){main{grid-template-columns:minmax(0,1fr)}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}
+.card h2{margin:0 0 10px;font-size:15px;text-transform:uppercase;letter-spacing:.04em;color:var(--pri)}
+.card h2 b{display:inline-block;background:var(--pri);color:#fff;border-radius:50%;width:24px;height:24px;text-align:center;line-height:24px;margin-right:8px;font-size:13px}
+label{display:block;font-weight:600;font-size:14px;margin:10px 0 4px}label small{font-weight:400;color:var(--mut)}
+input,select{width:100%;height:52px;font-size:20px;padding:0 12px;border:2px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink)}
+input:focus,select:focus{outline:none;border-color:var(--pri)}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}[hidden]{display:none!important}
+.alert{border-left:4px solid var(--bad);background:var(--soft);padding:10px 12px;border-radius:8px;margin-bottom:10px;font-size:14px}.alert.w{border-color:var(--warn)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}.k{background:var(--soft);border-radius:10px;padding:10px}
+.k span{display:block;font-size:12px;color:var(--mut)}.k strong{font-size:22px}.k em{font-style:normal;font-size:13px;color:var(--mut)}
+.big{background:linear-gradient(135deg,#065a78,#0a9bc4);color:#fff}.big span,.big em{color:#d8f1fa}
+table{width:100%;border-collapse:collapse;font-size:14px}td,th{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left}td:last-child{text-align:right}
+.ok{color:var(--ok);font-weight:700}.no{color:var(--bad);font-weight:700}.ou{color:var(--warn);font-weight:700}
+button{height:48px;padding:0 18px;font-size:16px;font-weight:700;border:0;border-radius:10px;background:var(--pri);color:#fff;cursor:pointer;margin-top:8px}
+details{margin-top:8px}summary{cursor:pointer;font-weight:700;color:var(--pri)}pre{white-space:pre-wrap;font-size:13px;background:var(--bg);padding:10px;border-radius:8px;overflow-x:auto}
+.chart{overflow-x:auto}svg{width:100%;height:auto;min-width:420px}.leg{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12px;color:var(--mut)}
+footer{max-width:1100px;margin:0 auto;padding:0 16px 24px;color:var(--mut);font-size:12px}
+</style></head><body>
+<header><div><h1>Calculadora de dimensionamiento de albercas</h1><p>Captura los datos del cliente; el sistema calcula volumen, CDT, FCI, motobomba, tubería y empotrables.</p></div></header>
+<main>
+<section>
+ <div class="card"><h2><b>1</b>Datos generales</h2>
+  <label for="type">Tipo de instalación</label><select id="type"><option value="residential">Residencial (8 h de filtración)</option><option value="commercial">Comercial (12 h de filtración)</option></select></div>
+ <div class="card"><h2><b>2</b>Dimensiones</h2>
+  <label for="shape">Forma</label><select id="shape"><option value="rect">Rectangular</option><option value="circ">Circular</option><option value="sq">Cuadrada</option><option value="other">Otra forma</option></select>
+  <div id="g-rect" class="row"><div><label for="len">Largo <small>(m)</small></label><input id="len" inputmode="decimal" value="8"></div><div><label for="wid">Ancho <small>(m)</small></label><input id="wid" inputmode="decimal" value="4"></div></div>
+  <div id="g-circ" hidden><label for="dia">Diámetro <small>(m)</small></label><input id="dia" inputmode="decimal"></div>
+  <div id="g-sq" hidden><label for="side">Lado <small>(m)</small></label><input id="side" inputmode="decimal"></div>
+  <div id="g-other" hidden class="row"><div><label for="desc">Descripción de la forma</label><input id="desc" style="font-size:16px"></div><div><label for="area">Área superficial <small>(m²)</small></label><input id="area" inputmode="decimal"></div></div>
+  <label for="dtype">Profundidad</label><select id="dtype"><option value="pool">Alberca típica (1.40 m)</option><option value="jacuzzi">Jacuzzi típico (0.90 m)</option><option value="custom">Personalizada</option><option value="var">Variable (promedio de dos medidas)</option></select>
+  <div id="g-custom" hidden><label for="dep">Profundidad <small>(m)</small></label><input id="dep" inputmode="decimal"></div>
+  <div id="g-var" hidden class="row"><div><label for="d1">Profundidad 1 <small>(m)</small></label><input id="d1" inputmode="decimal"></div><div><label for="d2">Profundidad 2 <small>(m)</small></label><input id="d2" inputmode="decimal"></div></div></div>
+ <div class="card"><h2><b>3</b>Paneles solares</h2>
+  <label for="solar">¿Llevará paneles solares?</label><select id="solar"><option value="yes">Sí</option><option value="no">No</option></select>
+  <div id="g-h"><label for="hgt">Altura de instalación de paneles <small>(m)</small></label><input id="hgt" inputmode="decimal" value="5"></div></div>
+</section>
+<section id="out" aria-live="polite"></section>
+</main>
+<footer>Reglas de dimensionamiento (m² por skimmer, tablas CDT, curvas, capacidades) provienen de Cotizador WETBUY y están en el objeto CFG del código. Son reglas del proyecto, no leyes físicas. Todo resultado debe ser validado por el área técnica.</footer>
+
+<script id="engine">
+// ===== DATOS TÉCNICOS (fuente: Cotizador WETBUY.xlsx) =====
+const CFG={
+ hours:{residential:8,commercial:12},
+ depth:{pool:1.4,jacuzzi:0.9,min:0.2,max:6},      // m
+ solarSplit:7,                                      // m: <=7 Caso 1, >7 Caso 2
+ ftToM:0.3048,
+ // bandas [desde, hasta] en L, carga en ft. Rango [desde,hasta); el último incluye su límite superior.
+ cdt:{
+  1:{label:'Paneles 0–7 m',b:[[0,68000,35],[68000,95000,40],[95000,113000,50],[113000,132000,55],[132000,151000,55]]},
+  2:{label:'Paneles > 7 m',b:[[0,68000,38],[68000,95000,43],[95000,113000,53],[113000,132000,58],[132000,151000,58]]},
+  3:{label:'Sin paneles',b:[[0,68000,25],[68000,95000,30],[95000,113000,40],[113000,132000,45],[132000,151000,45]]}},
+ qStep:50, // curvas: H (m) en Q = 0,50,100,... LPM; null = sin dato
+ pumps:[
+  {m:'HAX-HFC-801',kw:0.8,hp:1,h:[12,11.5,10.9,10.2,9.3,8.1,6.6]},
+  {m:'HAX-HFC-1101',kw:1.1,hp:1.5,h:[16,15.3,14.6,13.8,12.8,11.6,10.2]},
+  {m:'HAX-HFC-1501',kw:1.5,hp:2,h:[17,16.7,16.4,15.9,15.3,14.6,13.6,12.3,11,9.5,7.6]},
+  {m:'HAX-HFC-2201',kw:2.2,hp:3,h:[20,19.5,18.8,18,17.2,16.2,15,13.8,12.5,11,9]}],
+ pipes:[['1/2"',15],['3/4"',34],['1"',60],['1 1/2"',135],['2"',240],['3"',540],['4"',960],['6"',2160],['8"',3840]], // LPM a 7 ft/s
+ nozzles:[['1/2"',15],['3/4"',34],['1"',60]],
+ rules:{skimmerPoolM2:50,skimmerJacM2:25,dren:1,barredora:1,rebosadero:1,autollenado:1}
+};
+const ceilSafe=x=>Math.ceil(Math.round(x*1e6)/1e6);
+function cdtLookup(caseN,L){const b=CFG.cdt[caseN].b;
+ for(let i=0;i<b.length;i++){const last=i===b.length-1;if(L>=b[i][0]&&(L<b[i][1]||(last&&L<=b[i][1])))return b[i];}return null;}
+// Interpolación lineal sobre la curva Q-H de una bomba: Q para una carga H dada
+function evalPump(p,H,fci){
+ const pts=p.h.map((h,i)=>[i*CFG.qStep,h]).filter(x=>typeof x[1]==='number');
+ const hmax=pts[0][1],[ql,hl]=pts[pts.length-1];
+ if(H>hmax)return{p,st:'no',why:`No alcanza la CDT (carga máx. ${hmax} m a Q=0)`};
+ if(H<hl)return{p,st:'out',qlast:ql,why:`CDT menor que el último punto de la curva (${hl} m a ${ql} LPM)`};
+ let q=null;
+ for(let k=0;k<pts.length-1;k++){const[q1,h1]=pts[k],[q2,h2]=pts[k+1];
+  if(h1>=H&&H>=h2){q=h1===h2?q1:q1+((h1-H)/(h1-h2))*(q2-q1);break;}}
+ return q>=fci?{p,st:'ok',q,why:`Entrega ${q.toFixed(1)} LPM a ${H.toFixed(2)} m ≥ FCI`}
+            :{p,st:'no',q,why:`Entrega solo ${q.toFixed(1)} LPM a ${H.toFixed(2)} m < FCI`};
+}
+function calc(i){
+ const e=[],w=[],r={};
+ const need=(v,n)=>{if(v===null){e.push(`${n}: campo obligatorio`);return false}
+  if(!isFinite(v)||v<=0){e.push(`${n}: debe ser un número mayor que 0`);return false}return true};
+ r.hours=CFG.hours[i.type];
+ if(i.shape==='rect'){if(need(i.len,'Largo')&need(i.wid,'Ancho'))r.area=i.len*i.wid}
+ else if(i.shape==='circ'){if(need(i.dia,'Diámetro'))r.area=Math.PI*(i.dia/2)**2}
+ else if(i.shape==='sq'){if(need(i.side,'Lado'))r.area=i.side*i.side}
+ else{if(need(i.area,'Área superficial'))r.area=i.area}
+ if(i.dtype==='pool')r.depth=CFG.depth.pool;
+ else if(i.dtype==='jacuzzi')r.depth=CFG.depth.jacuzzi;
+ else if(i.dtype==='custom'){if(need(i.dep,'Profundidad'))r.depth=i.dep}
+ else if(need(i.d1,'Profundidad 1')&need(i.d2,'Profundidad 2'))r.depth=(i.d1+i.d2)/2;
+ if(r.depth!==undefined&&(r.depth<CFG.depth.min||r.depth>CFG.depth.max))e.push(`Profundidad de cálculo ${r.depth.toFixed(2)} m fuera de lo plausible (${CFG.depth.min}–${CFG.depth.max} m)`);
+ if(i.solar==='yes'){if(i.hgt===null)e.push('Altura de paneles: campo obligatorio');else if(!isFinite(i.hgt)||i.hgt<0)e.push('Altura de paneles: debe ser un número ≥ 0')}
+ if(e.length)return{e,w};
+ r.vol=r.area*r.depth;r.liters=r.vol*1000;r.fci=r.liters/(r.hours*60);
+ r.caseN=i.solar==='no'?3:(i.hgt<=CFG.solarSplit?1:2);
+ const band=cdtLookup(r.caseN,r.liters);
+ if(!band){w.push('Este volumen está fuera del rango de la tabla técnica actual (máx. 151,000 L). Se requiere validación técnica.');return{e,w,r}}
+ r.band=band;r.cdtFt=band[2];r.cdtM=r.cdtFt*CFG.ftToM;
+ r.ev=CFG.pumps.map(p=>evalPump(p,r.cdtM,r.fci));
+ r.sel=r.ev.find(x=>x.st==='ok');
+ if(!r.sel){w.push(r.ev.some(x=>x.st==='out'&&x.qlast>=r.fci)?'Ninguna bomba cumple dentro de su curva publicada (alguna opera fuera del último punto). Se requiere validación técnica / selección de una bomba fuera de la tabla.':'Ninguna bomba de la tabla cumple FCI a la CDT requerida. Se requiere validación técnica / selección de una bomba fuera de la tabla.');return{e,w,r}}
+ r.qop=r.sel.q;
+ r.pipe=CFG.pipes.find(x=>x[1]>=r.qop);
+ if(!r.pipe)w.push('El flujo excede la tabla de tuberías. Se requiere validación técnica.');
+ const nz=CFG.nozzles[CFG.nozzles.length-1];r.nz=nz;r.nzN=ceilSafe(r.qop/nz[1]);
+ const jac=i.dtype==='jacuzzi',m2=jac?CFG.rules.skimmerJacM2:CFG.rules.skimmerPoolM2;
+ r.skim=ceilSafe(r.area/m2);r.skimM2=m2;r.jac=jac;
+ return{e,w,r};
+}
+</script>
+<script id="ui">
+const $=id=>document.getElementById(id);
+const num=id=>{const s=$(id).value.trim().replace(',','.');return s===''?null:Number(s)};
+const f=(x,d=2)=>x.toLocaleString('es-MX',{minimumFractionDigits:d,maximumFractionDigits:d});
+const SH={rect:'Rectangular',circ:'Circular',sq:'Cuadrada',other:'Otra forma'};
+let summary='';
+function read(){return{type:$('type').value,shape:$('shape').value,len:num('len'),wid:num('wid'),dia:num('dia'),side:num('side'),area:num('area'),dtype:$('dtype').value,dep:num('dep'),d1:num('d1'),d2:num('d2'),solar:$('solar').value,hgt:num('hgt')}}
+function chart(r){
+ const W=640,H=320,L=44,B=34,T=10,R=12,xm=500,ym=Math.max(22,Math.ceil(r.cdtM+2));
+ const X=q=>L+q/xm*(W-L-R),Y=h=>H-B-h/ym*(H-B-T),col=['#0a7ea4','#12805c','#c27a00','#b0306a'];
+ let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Curvas Q-H de las motobombas"><g stroke="currentColor" opacity=".15">`;
+ for(let q=0;q<=xm;q+=100)s+=`<line x1="${X(q)}" x2="${X(q)}" y1="${T}" y2="${H-B}"/>`;
+ for(let h=0;h<=ym;h+=5)s+=`<line y1="${Y(h)}" y2="${Y(h)}" x1="${L}" x2="${W-R}"/>`;
+ s+=`</g><g font-size="11" fill="currentColor">`;
+ for(let q=0;q<=xm;q+=100)s+=`<text x="${X(q)}" y="${H-B+14}" text-anchor="middle">${q}</text>`;
+ for(let h=0;h<=ym;h+=5)s+=`<text x="${L-6}" y="${Y(h)+4}" text-anchor="end">${h}</text>`;
+ s+=`<text x="${(L+W)/2}" y="${H-4}" text-anchor="middle">Flujo Q (LPM)</text><text transform="translate(11 ${H/2}) rotate(-90)" text-anchor="middle">Carga H (m)</text></g>`;
+ CFG.pumps.forEach((p,k)=>{const pts=p.h.map((h,i)=>X(i*CFG.qStep)+','+Y(h)).join(' ');const on=r.sel&&r.sel.p===p;
+  s+=`<polyline points="${pts}" fill="none" stroke="${col[k]}" stroke-width="${on?4:2}" opacity="${on?1:.7}"/>`});
+ s+=`<line x1="${X(r.fci)}" x2="${X(r.fci)}" y1="${T}" y2="${H-B}" stroke="#c0392b" stroke-dasharray="5 4"/><line x1="${L}" x2="${W-R}" y1="${Y(r.cdtM)}" y2="${Y(r.cdtM)}" stroke="#c0392b" stroke-dasharray="5 4"/>`;
+ if(r.qop!==undefined)s+=`<circle cx="${X(r.qop)}" cy="${Y(r.cdtM)}" r="7" fill="#fff" stroke="#c0392b" stroke-width="3"/>`;
+ s+='</svg><div class="leg">'+CFG.pumps.map((p,k)=>`<span><b style="color:${col[k]}">━</b> ${p.m}</span>`).join('')+`<span style="color:#c0392b">- - FCI ${f(r.fci,1)} LPM y CDT ${f(r.cdtM)} m</span><span>○ punto de operación</span></div>`;
+ return s;
+}
+function update(){
+ const sh=$('shape').value,dt=$('dtype').value;
+ $('g-rect').hidden=sh!=='rect';$('g-circ').hidden=sh!=='circ';$('g-sq').hidden=sh!=='sq';$('g-other').hidden=sh!=='other';
+ $('g-custom').hidden=dt!=='custom';$('g-var').hidden=dt!=='var';$('g-h').hidden=$('solar').value!=='yes';
+ const i=read(),{e,w,r}=calc(i);let h='';
+ if(e.length){$('out').innerHTML='<div class="card"><h2>Completa los datos</h2>'+e.map(x=>`<div class="alert">${x}</div>`).join('')+'</div>';summary='';return}
+ h+=w.map(x=>`<div class="alert w">⚠ ${x}</div>`).join('');
+ const dimTxt=i.shape==='rect'?`${f(i.len)} × ${f(i.wid)} m`:i.shape==='circ'?`Ø ${f(i.dia)} m`:i.shape==='sq'?`${f(i.side)} × ${f(i.side)} m`:`${i.desc?'Forma: '+$('desc').value:'Área directa'}`;
+ const dTxt=i.dtype==='var'?`${f(i.d1)}–${f(i.d2)} m (prom. ${f(r.depth)} m)`:`${f(r.depth)} m`;
+ h+=`<div class="card"><h2><b>4</b>Volumen y filtración</h2><div class="kpis">
+ <div class="k"><span>Área superficial</span><strong>${f(r.area)}</strong> <em>m²</em></div>
+ <div class="k"><span>Profundidad de cálculo</span><strong>${f(r.depth)}</strong> <em>m</em></div>
+ <div class="k"><span>Volumen</span><strong>${f(r.vol)}</strong> <em>m³</em></div>
+ <div class="k big"><span>Capacidad</span><strong>${f(r.liters,0)}</strong> <em>L</em></div>
+ <div class="k"><span>Horas de filtración</span><strong>${r.hours}</strong> <em>h</em></div>
+ <div class="k big"><span>FCI</span><strong>${f(r.fci,1)}</strong> <em>LPM</em></div></div></div>`;
+ if(!r.band){$('out').innerHTML=h;summary='';return}
+ h+=`<div class="card"><h2><b>5</b>Carga dinámica total</h2><div class="kpis">
+ <div class="k"><span>Caso CDT</span><strong>Caso ${r.caseN}</strong><br><em>${CFG.cdt[r.caseN].label}</em></div>
+ <div class="k"><span>CDT (tabla)</span><strong>${r.cdtFt}</strong> <em>ft</em></div>
+ <div class="k big"><span>CDT</span><strong>${f(r.cdtM)}</strong> <em>m</em></div></div></div>`;
+ h+=`<div class="card"><h2><b>6</b>Motobomba</h2>`+(r.sel?`<div class="kpis"><div class="k big"><span>Modelo recomendado</span><strong>${r.sel.p.m}</strong><br><em>${r.sel.p.kw} kW · ${r.sel.p.hp} HP</em></div><div class="k"><span>Flujo sobre la curva a ${f(r.cdtM)} m</span><strong>${f(r.qop,1)}</strong> <em>LPM</em></div></div>`:'')+
+ `<table>${r.ev.map(x=>`<tr><td>${x.p.m}</td><td class="${x.st}">${x.st==='ok'?'Cumple':x.st==='no'?'No cumple':'Fuera de rango'}</td><td>${x.why}</td></tr>`).join('')}</table>
+ <div class="chart">${chart(r)}</div></div>`;
+ if(r.sel){
+ h+=`<div class="card"><h2><b>7</b>Tubería y empotrables</h2><table>
+ <tr><td>Tubería recomendada (≥ ${f(r.qop,1)} LPM)</td><td><b>${r.pipe?r.pipe[0]+' ('+r.pipe[1]+' LPM)':'Validar'}</b></td></tr>
+ <tr><td>Skimmers (${r.jac?'jacuzzi':'alberca'}: 1 por ${r.skimM2} m²)</td><td><b>${r.skim}</b></td></tr>
+ <tr><td>Dren de fondo</td><td><b>${CFG.rules.dren}</b></td></tr><tr><td>Boquilla barredora</td><td><b>${CFG.rules.barredora}</b></td></tr>
+ <tr><td>Rejilla rebosadero</td><td><b>${CFG.rules.rebosadero}</b></td></tr><tr><td>Autollenado</td><td><b>${CFG.rules.autollenado}</b></td></tr>
+ <tr><td>Boquillas de retorno (${f(r.qop,1)} ÷ ${r.nz[1]} LPM, redondeo arriba)</td><td><b>${r.nzN} de ${r.nz[0]}</b></td></tr></table></div>`;
+ summary=`DATOS CLAVE PARA COTIZACIÓN
+Tipo: ${i.type==='residential'?'Residencial':'Comercial'} | Forma: ${SH[i.shape]} (${dimTxt})
+Área: ${f(r.area)} m² | Profundidad: ${dTxt}
+Volumen: ${f(r.vol)} m³ | Capacidad: ${f(r.liters,0)} L | Filtración: ${r.hours} h
+Paneles solares: ${i.solar==='yes'?'Sí, '+f(i.hgt)+' m':'No'} | Caso CDT ${r.caseN}: ${f(r.cdtM)} m (${r.cdtFt} ft)
+FCI: ${f(r.fci,1)} LPM
+Motobomba: ${r.sel.p.m} (${r.sel.p.kw} kW / ${r.sel.p.hp} HP) | Flujo sobre curva: ${f(r.qop,1)} LPM
+Tubería: ${r.pipe?r.pipe[0]:'validar'}
+Skimmers: ${r.skim} | Dren de fondo: ${CFG.rules.dren} | Boquilla barredora: ${CFG.rules.barredora} | Rejilla rebosadero: ${CFG.rules.rebosadero} | Autollenado: ${CFG.rules.autollenado}
+Boquillas de retorno: ${r.nzN} de ${r.nz[0]}`;
+ h+=`<div class="card"><h2><b>8</b>Resumen para el vendedor</h2><pre id="sum">${summary}</pre><button id="cp" type="button">Copiar resumen</button>
+ <details><summary>Ver cálculo técnico</summary><pre>Área = ${i.shape==='circ'?'π × (D/2)²':i.shape==='other'?'dato directo':'lados'} = ${f(r.area)} m²
+Volumen = ${f(r.area)} m² × ${f(r.depth)} m = ${f(r.vol)} m³
+Litros = ${f(r.vol)} × 1000 = ${f(r.liters,0)} L
+FCI = ${f(r.liters,0)} L ÷ (${r.hours} h × 60 min/h) = ${f(r.fci,2)} LPM
+CDT: caso ${r.caseN}, banda [${f(r.band[0],0)}; ${f(r.band[1],0)}${r.band[1]===151000?']':')'} L → ${r.cdtFt} ft × 0.3048 = ${f(r.cdtM,3)} m
+Interpolación: Q = Q1 + (H1 − H) / (H1 − H2) × (Q2 − Q1)
+Selección: menor bomba con Q(H=CDT) ≥ FCI
+Tubería: menor diámetro con capacidad ≥ Q de operación (tabla a 7 ft/s)
+Skimmers = ⌈área ÷ ${r.skimM2}⌉ | Retorno = ⌈Q ÷ ${r.nz[1]}⌉ (reglas del proyecto, configurables)</pre></details></div>`}
+ $('out').innerHTML=h;
+ const b=$('cp');if(b)b.onclick=()=>{const ok=()=>{b.textContent='¡Copiado!';setTimeout(()=>b.textContent='Copiar resumen',1500)};
+  try{navigator.clipboard.writeText(summary).then(ok,fb)}catch(x){fb()}
+  function fb(){const t=document.createElement('textarea');t.value=summary;document.body.appendChild(t);t.select();try{document.execCommand('copy');ok()}catch(x){}t.remove()}};
+}
+document.addEventListener('input',update);document.addEventListener('change',update);update();
+</script></body></html>
